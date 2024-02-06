@@ -1,0 +1,19 @@
+{
+    "artificialDelayMilliseconds": 700,
+    "keepExistingTerminalsOpen": false,
+    "runOnStartup": true,
+    "terminals": [
+      {
+        "splitTerminals": [
+          {
+            "name": "docker",
+            "commands": ["docker version"]
+          },
+          {
+            "name": "golang",
+            "commands": ["go version"]
+          }
+        ]
+      }
+    ]
+  }
