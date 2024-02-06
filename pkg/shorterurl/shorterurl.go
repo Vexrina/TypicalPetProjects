@@ -1,21 +1,17 @@
 package shorterurl
 
 import (
-	// "net/http"
 	"fmt"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-)
 
-type urls struct{
-	UUID string `json:"uuid"`
-	SiteName string `json:"siteName"`
-	PathToPage string `json:"pathToPage"`
-	ShortUrl string `json:"shortUrl"`
-	TimeStamp string `json:"creationTime"`
-}
+	"typicalypetprojects/pkg/logging"
+	"typicalypetprojects/pkg/typing"
+)
 
 func Reverse(s string) string {
 	n := len(s)
@@ -32,15 +28,18 @@ func MakeHash(id string) string {
 		alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" // len = 62
 	)
 	var res string = ""
+
 	moduleOfId := 0
 	for idx := 0; idx < len(id); idx++ {
 		indexInAplhabet := strings.Index(alphabet, string(id[idx]))
 		moduleOfId += indexInAplhabet * 10000
 	}
+
 	for moduleOfId > 0 {
 		res += string(alphabet[moduleOfId%62])
 		moduleOfId /= 62
 	}
+
 	return Reverse(res)
 }
 
@@ -68,7 +67,38 @@ func СreateTinyUrl(url string) (string, string, string, string) {
 	return id, siteName, pathToPage, result
 }
 
+func urlExist(existUrls *[]typing.Urls, targetUrl typing.Urls) (bool, typing.Urls) {
+	for _, url := range *existUrls{
+		if url.SiteName==targetUrl.SiteName && url.SiteName==targetUrl.PathToPage{
+			return true, url
+		}
+	}
+	return false, typing.Urls{}
+}
 
-func postUrl(c *gin.Context){
-	fmt.Println()
+func PostUrl(c *gin.Context, existUrls *[]typing.Urls) {
+	logging.InfoMessage("PostUrl")
+	var requestData typing.PostUrl
+
+	if err := c.BindJSON(&requestData); err != nil {
+		logging.ErrorMessage("PostUrl", err.Error())
+		return
+	}
+
+	id, siteName, pathToPage, shortUrl := СreateTinyUrl(requestData.URL)
+
+	newUrl := typing.Urls{
+		UUID:       id,
+		SiteName:   siteName,
+		PathToPage: pathToPage,
+		ShortUrl:   shortUrl,
+		TimeStamp:  time.Now().UTC().Format("2006-01-02 15:04:05"),
+	}
+	// if urlExist(*&existUrls, newUrl){
+	// 	c.IndentedJSON()
+	// }
+	*existUrls = append(*existUrls, newUrl)
+	c.IndentedJSON(http.StatusCreated, newUrl)
+	logging.SuccessMessage("PostUrl")
+	fmt.Println(existUrls)
 }
