@@ -2,28 +2,29 @@ package database
 
 import (
 	"database/sql"
-	"log"
+
 	_ "github.com/lib/pq"
+
+	"typicalypetprojects/pkg/logging"
 )
 
-func Connect(dbusr string, dbpwd string){
-	conninfo := "user=root password=root host=127.0.0.1 sslmode=disable"
-	
-	db, err := sql.Open("postgres", conninfo)
+func ConnectPg() (*sql.DB, error) {
+	// Строка подключения к базе данных PostgreSQL
+	connStr := "user=root dbname=test_db password=root host=172.18.0.2 port=5432 sslmode=disable"
 
+	// Открываем соединение с базой данных
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal(err)
+		logging.ErrorMessage("ConnectPg", err.Error(), 1)
+	}
+	defer db.Close()
+
+	// Проверяем, что соединение с базой данных успешно установлено
+	err = db.Ping()
+	if err != nil {
+		logging.ErrorMessage("ConnectPg", err.Error(), 2)
 	}
 
-	dbName := "test_db"
-	_, err = db.Exec("create database " +dbName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = db.Exec("CREATE TABLE example ( id integer, username varchar(255) )")
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	logging.SuccessMessage("ConnectPg")
+	return db, nil
 }

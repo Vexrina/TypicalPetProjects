@@ -81,8 +81,7 @@ func PostUrl(c *gin.Context, existUrls *[]typing.Urls) {
 	var requestData typing.PostUrl
 
 	if err := c.BindJSON(&requestData); err != nil {
-		logging.ErrorMessage("PostUrl", err.Error())
-		return
+		logging.ErrorMessage("PostUrl", err.Error(), 50)
 	}
 
 	id, siteName, pathToPage, shortUrl := СreateTinyUrl(requestData.URL)
